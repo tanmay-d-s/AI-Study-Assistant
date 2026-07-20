@@ -55,7 +55,7 @@ async def upload_pdf(file: UploadFile = File(...)):
 
     # Ask Gemini for summary
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-3.5-flash",
         contents=f"""
 Summarize the following study notes in simple language.
 
