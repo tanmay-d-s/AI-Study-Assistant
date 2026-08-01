@@ -7,6 +7,7 @@ from pypdf import PdfReader
 from dotenv import load_dotenv
 from google import genai
 
+from app.database.storage import pdf_storage
 from app.routes import chat
 
 router = APIRouter()
@@ -35,7 +36,10 @@ async def upload_pdf(file: UploadFile = File(...)):
         if page_text:
             extracted_text += page_text + "\n"
 
-    # Store the extracted text so the chat endpoint can use it
+    # Store this PDF
+    pdf_storage[file.filename] = extracted_text
+
+    # Keep compatibility with current chat
     chat.pdf_text = extracted_text
 
     response = client.models.generate_content(
@@ -50,6 +54,6 @@ Summarize the following study notes in simple language.
     return {
         "filename": file.filename,
         "characters": len(extracted_text),
-        "preview": extracted_text[:500],
+        "total_pdfs": len(pdf_storage),
         "summary": response.text,
     }
