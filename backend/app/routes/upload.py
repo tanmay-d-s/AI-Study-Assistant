@@ -2,60 +2,44 @@ from pathlib import Path
 import shutil
 import os
 
+from fastapi import APIRouter, File, UploadFile
+from pypdf import PdfReader
 from dotenv import load_dotenv
 from google import genai
 
-from fastapi import FastAPI, File, UploadFile
-from fastapi.middleware.cors import CORSMiddleware
-from pypdf import PdfReader
+from app.routes import chat
 
-# Load .env file
+router = APIRouter()
+
 load_dotenv()
 
-# Create Gemini client
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-
-app = FastAPI(title="AI Study Assistant API")
 
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
-
-@app.get("/")
-def home():
-    return {"message": "AI Study Assistant API is running"}
-
-
-@app.post("/upload")
+@router.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
-    # Save uploaded PDF
     file_path = UPLOAD_DIR / file.filename
 
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # Read PDF
     reader = PdfReader(file_path)
 
     extracted_text = ""
 
     for page in reader.pages:
         page_text = page.extract_text()
-
         if page_text:
             extracted_text += page_text + "\n"
 
-    # Ask Gemini for summary
+    # Store the extracted text so the chat endpoint can use it
+    chat.pdf_text = extracted_text
+
     response = client.models.generate_content(
-        model="models/gemini-3.5-flash",
+        model="models/gemini-flash-latest",
         contents=f"""
 Summarize the following study notes in simple language.
 
