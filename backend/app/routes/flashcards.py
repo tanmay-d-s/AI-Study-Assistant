@@ -1,13 +1,13 @@
 from fastapi import APIRouter
 
 from app.database.storage import pdf_storage
-from app.services.gemini_service import generate_quiz
+from app.services.gemini_service import generate_flashcards
 
 router = APIRouter()
 
 
-@router.get("/quiz")
-def quiz():
+@router.get("/flashcards")
+def flashcards():
 
     if not pdf_storage:
         return {
@@ -19,10 +19,10 @@ def quiz():
     for filename, text in pdf_storage.items():
         all_notes += f"\n\n===== {filename} =====\n{text}"
 
-    quiz_text = generate_quiz(all_notes)
+    flashcards = generate_flashcards(all_notes)
 
     return {
         "uploaded_pdfs": list(pdf_storage.keys()),
         "total_pdfs": len(pdf_storage),
-        "quiz": quiz_text
+        "flashcards": flashcards
     }

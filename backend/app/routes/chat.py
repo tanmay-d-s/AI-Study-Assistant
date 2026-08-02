@@ -1,17 +1,10 @@
-import os
-
 from fastapi import APIRouter
 from pydantic import BaseModel
-from dotenv import load_dotenv
-from google import genai
 
 from app.database.storage import pdf_storage, chat_history
+from app.services.gemini_service import chat_with_pdf
 
 router = APIRouter()
-
-load_dotenv()
-
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
 class ChatRequest(BaseModel):
@@ -42,35 +35,10 @@ def chat(request: ChatRequest):
         "text": request.question
     })
 
-    # Build conversation history
-    history = ""
+    # Get AI answer
+    answer = chat_with_pdf(all_notes, request.question)
 
-    for msg in chat_history["default"]:
-        history += f"{msg['role']}: {msg['text']}\n"
-
-    prompt = f"""
-You are an AI Study Assistant.
-
-Use ONLY the uploaded study material to answer.
-
-Uploaded PDFs:
-{all_notes}
-
-Conversation History:
-{history}
-
-Current Question:
-{request.question}
-"""
-
-    response = client.models.generate_content(
-        model="models/gemini-flash-latest",
-        contents=prompt
-    )
-
-    answer = response.text
-
-    # Save AI response
+    # Save AI answer
     chat_history["default"].append({
         "role": "assistant",
         "text": answer

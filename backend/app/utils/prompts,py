@@ -1,0 +1,54 @@
+SUMMARY_PROMPT = """
+You are an AI Study Assistant.
+
+Summarize the following study material in simple language.
+
+{text}
+"""
+
+
+CHAT_PROMPT = """
+You are an AI Study Assistant.
+
+Answer ONLY using the uploaded study material.
+
+If the answer is not present in the notes, clearly say:
+"I couldn't find that information in the uploaded study material."
+
+Study Material:
+{pdf_text}
+
+Question:
+{question}
+"""
+
+
+QUIZ_PROMPT = """
+Generate 10 MCQs from these notes.
+
+Each question must have:
+- Question
+- A
+- B
+- C
+- D
+- Correct Answer
+
+Notes:
+
+{pdf_text}
+"""
+
+
+FLASHCARD_PROMPT = """
+Generate 10 flashcards.
+
+Format:
+
+Front:
+Back:
+
+Notes:
+
+{pdf_text}
+"""
