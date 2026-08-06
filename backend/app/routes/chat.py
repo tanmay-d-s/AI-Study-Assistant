@@ -1,7 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
-from app.database.storage import pdf_storage, chat_history
+from app.database.database import get_db
+from app.models.chat import Chat
+from app.models.pdf import PDF
 from app.services.gemini_service import chat_with_pdf
 
 router = APIRouter()
@@ -12,42 +15,38 @@ class ChatRequest(BaseModel):
 
 
 @router.post("/chat")
-def chat(request: ChatRequest):
+def chat(
+    request: ChatRequest,
+    db: Session = Depends(get_db),
+):
+    latest_pdf = (
+        db.query(PDF)
+        .order_by(PDF.id.desc())
+        .first()
+    )
 
-    if not pdf_storage:
+    if not latest_pdf:
         return {
-            "error": "Please upload at least one PDF first."
+            "error": "Please upload a PDF first."
         }
 
-    # Combine all uploaded PDFs
-    all_notes = ""
+    answer = chat_with_pdf(
+        latest_pdf.extracted_text,
+        request.question
+    )
 
-    for filename, text in pdf_storage.items():
-        all_notes += f"\n\n===== {filename} =====\n{text}"
+    new_chat = Chat(
+        question=request.question,
+        answer=answer,
+        user_id=latest_pdf.user_id,
+        pdf_id=latest_pdf.id,
+    )
 
-    # Initialize chat history
-    if "default" not in chat_history:
-        chat_history["default"] = []
-
-    # Save user question
-    chat_history["default"].append({
-        "role": "user",
-        "text": request.question
-    })
-
-    # Get AI answer
-    answer = chat_with_pdf(all_notes, request.question)
-
-    # Save AI answer
-    chat_history["default"].append({
-        "role": "assistant",
-        "text": answer
-    })
+    db.add(new_chat)
+    db.commit()
 
     return {
         "question": request.question,
         "answer": answer,
-        "uploaded_pdfs": list(pdf_storage.keys()),
-        "total_pdfs": len(pdf_storage),
-        "messages": len(chat_history["default"])
+        "pdf": latest_pdf.filename,
     }

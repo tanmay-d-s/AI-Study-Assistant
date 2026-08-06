@@ -1,28 +1,42 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
-from app.database.storage import pdf_storage
+from app.database.database import get_db
+from app.models.pdf import PDF
+from app.models.flashcard import Flashcard
 from app.services.gemini_service import generate_flashcards
 
 router = APIRouter()
 
 
 @router.get("/flashcards")
-def flashcards():
+def flashcards(db: Session = Depends(get_db)):
 
-    if not pdf_storage:
+    latest_pdf = (
+        db.query(PDF)
+        .order_by(PDF.id.desc())
+        .first()
+    )
+
+    if not latest_pdf:
         return {
-            "error": "Please upload at least one PDF first."
+            "error": "Please upload a PDF first."
         }
 
-    all_notes = ""
+    flashcard_text = generate_flashcards(
+        latest_pdf.extracted_text
+    )
 
-    for filename, text in pdf_storage.items():
-        all_notes += f"\n\n===== {filename} =====\n{text}"
+    new_flashcard = Flashcard(
+        flashcard_text=flashcard_text,
+        user_id=latest_pdf.user_id,
+        pdf_id=latest_pdf.id,
+    )
 
-    flashcards = generate_flashcards(all_notes)
+    db.add(new_flashcard)
+    db.commit()
 
     return {
-        "uploaded_pdfs": list(pdf_storage.keys()),
-        "total_pdfs": len(pdf_storage),
-        "flashcards": flashcards
+        "flashcards": flashcard_text,
+        "pdf": latest_pdf.filename,
     }

@@ -1,28 +1,42 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
-from app.database.storage import pdf_storage
+from app.database.database import get_db
+from app.models.pdf import PDF
+from app.models.quiz import Quiz
 from app.services.gemini_service import generate_quiz
 
 router = APIRouter()
 
 
 @router.get("/quiz")
-def quiz():
+def quiz(db: Session = Depends(get_db)):
 
-    if not pdf_storage:
+    latest_pdf = (
+        db.query(PDF)
+        .order_by(PDF.id.desc())
+        .first()
+    )
+
+    if not latest_pdf:
         return {
-            "error": "Please upload at least one PDF first."
+            "error": "Please upload a PDF first."
         }
 
-    all_notes = ""
+    quiz_text = generate_quiz(
+        latest_pdf.extracted_text
+    )
 
-    for filename, text in pdf_storage.items():
-        all_notes += f"\n\n===== {filename} =====\n{text}"
+    new_quiz = Quiz(
+        quiz_text=quiz_text,
+        user_id=latest_pdf.user_id,
+        pdf_id=latest_pdf.id,
+    )
 
-    quiz_text = generate_quiz(all_notes)
+    db.add(new_quiz)
+    db.commit()
 
     return {
-        "uploaded_pdfs": list(pdf_storage.keys()),
-        "total_pdfs": len(pdf_storage),
-        "quiz": quiz_text
+        "quiz": quiz_text,
+        "pdf": latest_pdf.filename,
     }
