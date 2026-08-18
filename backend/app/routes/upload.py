@@ -9,7 +9,6 @@ from app.auth.dependencies import get_current_user
 from app.models.user import User
 from app.models.pdf import PDF
 from app.services.pdf_service import extract_text_from_pdf
-from app.services.gemini_service import generate_summary
 
 
 router = APIRouter()
@@ -24,27 +23,27 @@ async def upload_pdf(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # Check file type
+    # Check filename
     if not file.filename:
         raise HTTPException(
             status_code=400,
-            detail="Please select a file."
+            detail="Please select a PDF file."
         )
 
+    # Check PDF extension
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(
             status_code=400,
             detail="Only PDF files are allowed."
         )
 
-    # Create a unique filename for the user
+    # Save PDF
     file_path = UPLOAD_DIR / file.filename
 
-    # Save PDF
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # Extract PDF text
+    # Extract text from PDF
     extracted_text = extract_text_from_pdf(file_path)
 
     if not extracted_text.strip():
@@ -53,14 +52,10 @@ async def upload_pdf(
             detail="Could not extract text from this PDF."
         )
 
-    # Generate AI summary
-    summary = generate_summary(extracted_text)
-
-    # Save PDF in PostgreSQL
+    # Save PDF information in database
     new_pdf = PDF(
         filename=file.filename,
         extracted_text=extracted_text,
-        summary=summary,
         user_id=current_user.id,
     )
 
@@ -73,6 +68,5 @@ async def upload_pdf(
         "id": new_pdf.id,
         "filename": new_pdf.filename,
         "characters": len(extracted_text),
-        "summary": summary,
         "user_id": current_user.id,
     }

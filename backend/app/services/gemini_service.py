@@ -9,16 +9,20 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 if not GEMINI_API_KEY:
-    raise RuntimeError("GEMINI_API_KEY is not set in the .env file.")
+    raise RuntimeError(
+        "GEMINI_API_KEY is not set in the .env file."
+    )
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+client = genai.Client(
+    api_key=GEMINI_API_KEY
+)
 
 MODEL_NAME = "gemini-3.6-flash"
 
 
 def generate_content(prompt: str):
     """
-    Send a prompt to Gemini with automatic retry
+    Send a prompt to Gemini with retry support
     for temporary server errors.
     """
 
@@ -38,38 +42,23 @@ def generate_content(prompt: str):
 
             error_text = str(error)
 
-            # Retry temporary Gemini server errors
-            if "503" in error_text or "UNAVAILABLE" in error_text:
+            if (
+                "503" in error_text
+                or "UNAVAILABLE" in error_text
+            ):
                 if attempt < 2:
                     time.sleep(2 * (attempt + 1))
                     continue
 
-            raise last_error
+            raise error
 
     raise last_error
 
 
-def generate_summary(text: str):
-    prompt = f"""
-You are an AI Study Assistant.
-
-Summarize the following study material in simple language.
-
-Use:
-- Simple explanations
-- Important points
-- Key concepts
-- Short paragraphs
-
-Study Material:
-
-{text}
-"""
-
-    return generate_content(prompt)
-
-
-def chat_with_pdf(pdf_text: str, question: str):
+def chat_with_pdf(
+    pdf_text: str,
+    question: str
+):
     prompt = f"""
 You are an AI Study Assistant.
 
@@ -95,7 +84,8 @@ def generate_quiz(pdf_text: str):
     prompt = f"""
 You are an AI Study Assistant.
 
-Generate 10 multiple-choice questions from the following study material.
+Generate 10 multiple-choice questions from
+the following study material.
 
 For every question provide:
 
@@ -120,7 +110,8 @@ def generate_flashcards(pdf_text: str):
     prompt = f"""
 You are an AI Study Assistant.
 
-Generate 10 useful flashcards from the following study material.
+Generate 10 useful flashcards from
+the following study material.
 
 Use exactly this format:
 
@@ -130,7 +121,8 @@ Back:
 Front:
 Back:
 
-Keep the answers concise and useful for revision.
+Keep the answers concise and useful
+for revision.
 
 Study Material:
 
