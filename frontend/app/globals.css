@@ -1,26 +1,156 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #eef5f8;
+  --foreground: #17201d;
+  --green: #a8f04c;
+  --green-dark: #78b83c;
+  --card: #ffffff;
+  --muted: #7d8985;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+input,
+textarea {
+  outline: none;
+}
+
+::selection {
+  background: #a8f04c;
+  color: #17201d;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5d1;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #aebbb5;
+}
+
+/* Hide scrollbar while keeping horizontal scrolling */
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile safe area */
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Small animation */
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+/* =========================================
+   LOGIN / SIGNUP CHARACTER ERROR SHAKE
+========================================= */
+
+@keyframes characterShake {
+  0% {
+    transform: translateX(0) rotate(0deg);
+  }
+
+  12% {
+    transform: translateX(-10px) rotate(-4deg);
+  }
+
+  24% {
+    transform: translateX(10px) rotate(4deg);
+  }
+
+  36% {
+    transform: translateX(-9px) rotate(-3deg);
+  }
+
+  48% {
+    transform: translateX(9px) rotate(3deg);
+  }
+
+  60% {
+    transform: translateX(-7px) rotate(-2deg);
+  }
+
+  72% {
+    transform: translateX(7px) rotate(2deg);
+  }
+
+  84% {
+    transform: translateX(-3px) rotate(-1deg);
+  }
+
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+}
+
+.character-shake {
+  animation: characterShake 550ms ease-in-out;
 }

@@ -20,6 +20,7 @@ import {
   Zap,
   MoreVertical,
   BookOpen,
+  X,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -30,12 +31,13 @@ export default function DashboardPage() {
     chats: 0,
     quizzes: 0,
     flashcards: 0,
-    recent_uploads: [],
+    recent_uploads: [] as any[],
   });
 
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadDashboard() {
@@ -51,14 +53,16 @@ export default function DashboardPage() {
 
     loadDashboard();
 
-    const t = setTimeout(() => setMounted(true), 20);
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 100);
 
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, []);
 
-  // =========================================================
-  // DASHBOARD CARDS
-  // =========================================================
+  /* =========================================================
+     YOUR EXISTING BUTTONS / ROUTES
+  ========================================================= */
 
   const cards = [
     {
@@ -67,10 +71,9 @@ export default function DashboardPage() {
       route: "/documents",
       change: "+4 this week",
       icon: FileText,
-      gradient: "from-blue-500 via-indigo-500 to-cyan-400",
-      glow: "hover:shadow-blue-500/20",
-      accent: "text-blue-400",
-      borderGlow: "group-hover:border-blue-500/40",
+      bg: "bg-[#E9F1FF]",
+      iconBg: "bg-[#DDE9FF]",
+      iconColor: "text-[#5B7FE8]",
       metric: "98% processed",
     },
     {
@@ -79,10 +82,9 @@ export default function DashboardPage() {
       route: "/chat",
       change: "+28 today",
       icon: MessageSquare,
-      gradient: "from-violet-500 via-purple-500 to-fuchsia-400",
-      glow: "hover:shadow-violet-500/20",
-      accent: "text-violet-400",
-      borderGlow: "group-hover:border-violet-500/40",
+      bg: "bg-[#F1E9FF]",
+      iconBg: "bg-[#E8D9FF]",
+      iconColor: "text-[#9B6DE3]",
       metric: "4.9 avg rating",
     },
     {
@@ -91,10 +93,9 @@ export default function DashboardPage() {
       route: "/quiz",
       change: "+12 completed",
       icon: Brain,
-      gradient: "from-amber-500 via-orange-500 to-rose-400",
-      glow: "hover:shadow-amber-500/20",
-      accent: "text-amber-400",
-      borderGlow: "group-hover:border-amber-500/40",
+      bg: "bg-[#FFF1DE]",
+      iconBg: "bg-[#FFE3BC]",
+      iconColor: "text-[#E79B3B]",
       metric: "92% accuracy",
     },
     {
@@ -103,17 +104,12 @@ export default function DashboardPage() {
       route: "/flashcards",
       change: "+65 mastered",
       icon: Layers,
-      gradient: "from-emerald-500 via-teal-500 to-cyan-400",
-      glow: "hover:shadow-emerald-500/20",
-      accent: "text-emerald-400",
-      borderGlow: "group-hover:border-emerald-500/40",
+      bg: "bg-[#E7F7E4]",
+      iconBg: "bg-[#D5F0CF]",
+      iconColor: "text-[#62A957]",
       metric: "Spaced repetition",
     },
   ];
-
-  // =========================================================
-  // RECENT FILES
-  // =========================================================
 
   const recentFiles = stats.recent_uploads?.length
     ? stats.recent_uploads
@@ -144,422 +140,1137 @@ export default function DashboardPage() {
         },
       ];
 
-  // =========================================================
-  // SEARCH
-  // =========================================================
+  const filteredUploads = recentFiles.filter((doc: any) => {
+  const title =
+    doc.title ||
+    doc.name ||
+    doc.filename ||
+    "";
 
-  const filteredUploads = recentFiles.filter((doc) =>
-    doc.title?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const query =
+    searchQuery.trim().toLowerCase();
 
-  // =========================================================
-  // PAGE
-  // =========================================================
+  if (!query) {
+    return true;
+  }
 
+  return title
+    .toLowerCase()
+    .includes(query);
+});
   return (
-    <div className="relative min-h-screen bg-[#07090e] text-slate-100 p-4 md:p-8 lg:p-10 overflow-hidden font-sans selection:bg-violet-500/30">
-      {/* Ambient background glows */}
-      <div className="fixed top-0 left-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[140px] pointer-events-none" />
+    <main className="min-h-screen bg-[#EEF5F8] text-[#17201D] overflow-x-hidden">
 
-      <div className="fixed bottom-0 right-10 translate-y-1/3 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[150px] pointer-events-none" />
+      {/* =====================================================
+          DESKTOP SIDE EFFECT / MAIN CONTAINER
+      ===================================================== */}
 
-      {/* Grid pattern */}
-      <div className="fixed inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+      <div className="w-full max-w-[1250px] mx-auto px-4 sm:px-6 lg:px-10 py-5 sm:py-7">
 
-      <div className="relative z-10 max-w-7xl mx-auto space-y-8">
+        {/* ===================================================
+            TOP HEADER
+        =================================================== */}
 
-        {/* =====================================================
-            HEADER
-        ===================================================== */}
+        <header className="flex items-center justify-between">
 
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800/60">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-violet-500/10 text-violet-400 border border-violet-500/20 backdrop-blur-md">
-                <Sparkles className="w-3.5 h-3.5 animate-pulse text-violet-300" />
+          {/* LEFT */}
+          <div className="flex items-center gap-3">
+
+            <button
+              onClick={() => router.push("/documents")}
+              className="
+                w-11
+                h-11
+                rounded-full
+                bg-white
+                border
+                border-white
+                shadow-sm
+                flex
+                items-center
+                justify-center
+                hover:scale-105
+                transition
+              "
+            >
+              <BookOpen className="w-5 h-5 text-gray-700" />
+            </button>
+
+            <div className="hidden sm:block">
+
+              <p className="text-[10px] text-gray-400">
                 AI Study Workspace
-              </span>
+              </p>
+
+              <h1 className="font-bold text-sm">
+                Study Assistant
+              </h1>
+
             </div>
 
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white">
-              Dashboard
-            </h1>
-
-            <p className="text-slate-400 text-sm mt-1">
-              Here is what is happening across your study materials today.
-            </p>
           </div>
 
-          {/* Upload Material */}
-          <button
-            onClick={() => router.push("/upload")}
-            className="relative group overflow-hidden rounded-2xl p-[1px] font-medium text-sm w-fit focus:outline-none"
-          >
-            <span className="absolute inset-0 bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-500 transition-all duration-300 group-hover:opacity-90" />
 
-            <span className="relative px-5 py-2.5 rounded-[15px] bg-slate-950 flex items-center gap-2 transition-all duration-300 group-hover:bg-opacity-80 text-white font-semibold">
-              <Upload className="w-4 h-4 text-violet-400 group-hover:scale-110 transition-transform" />
-              Upload Material
-            </span>
-          </button>
+          {/* RIGHT */}
+
+          <div className="flex items-center gap-2">
+
+            {/* EXISTING UPLOAD BUTTON */}
+
+            <button
+              onClick={() => router.push("/upload")}
+              className="
+                h-11
+                px-4
+                rounded-full
+                bg-[#A8F04C]
+                text-[#23320F]
+                font-bold
+                text-xs
+                flex
+                items-center
+                gap-2
+                shadow-sm
+                hover:bg-[#98E43D]
+                transition
+              "
+            >
+              <Upload className="w-4 h-4" />
+              <span className="hidden sm:inline">
+                Upload Material
+              </span>
+            </button>
+
+            {/* EXISTING QUICK REVIEW */}
+
+            <button
+              onClick={() => router.push("/flashcards")}
+              className="
+                w-11
+                h-11
+                rounded-full
+                bg-white
+                border
+                border-white
+                shadow-sm
+                flex
+                items-center
+                justify-center
+                hover:scale-105
+                transition
+              "
+              title="Quick Review"
+            >
+              <Zap className="w-5 h-5 text-[#6FAF42]" />
+            </button>
+
+          </div>
+
         </header>
 
-        {/* =====================================================
-            STREAK BANNER
-        ===================================================== */}
 
-        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-slate-900/80 via-indigo-950/30 to-slate-900/80 p-6 backdrop-blur-xl shadow-2xl">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+        {/* ===================================================
+            HERO
+        =================================================== */}
 
-            <div className="flex items-start gap-4">
+        <section className="mt-8">
 
-              <div className="p-3.5 rounded-2xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/30 text-amber-400 shrink-0">
-                <Flame className="w-7 h-7 animate-pulse" />
+          <h2
+            className="
+              text-[34px]
+              sm:text-[44px]
+              lg:text-[50px]
+              leading-[1.03]
+              tracking-[-1.8px]
+              font-semibold
+            "
+          >
+            Need help
+            <br />
+
+            <span className="font-normal">
+              studying
+            </span>{" "}
+
+            <span className="font-semibold">
+              today?
+            </span>
+          </h2>
+
+
+          <p className="mt-3 text-sm text-gray-500 max-w-md">
+            Your AI-powered study workspace for
+            notes, quizzes, chats and flashcards.
+          </p>
+
+        </section>
+
+
+        {/* ===================================================
+            EXISTING QUICK ACTIONS
+            SAME FUNCTIONALITY
+        =================================================== */}
+
+        <section className="mt-6">
+
+          <div
+            className="
+              flex
+              items-center
+              gap-2
+              overflow-x-auto
+              pb-2
+              scrollbar-hide
+            "
+          >
+
+            {/* SEARCH / ASK AREA */}
+
+            <button
+              onClick={() => router.push("/chat")}
+              className="
+                shrink-0
+                px-5
+                py-3
+                rounded-full
+                bg-white
+                border-2
+                border-[#D9F1B9]
+                shadow-sm
+                text-sm
+                font-semibold
+                hover:bg-[#FAFFF5]
+                transition
+              "
+            >
+              Ask a Question
+            </button>
+
+
+            {/* EXISTING DOCUMENT BUTTON */}
+
+            <button
+              onClick={() => router.push("/documents")}
+              className="
+                shrink-0
+                w-12
+                h-12
+                rounded-full
+                bg-white
+                shadow-sm
+                flex
+                items-center
+                justify-center
+                hover:scale-105
+                transition
+              "
+              title="Documents"
+            >
+              <FileText className="w-5 h-5 text-[#6FA6B0]" />
+            </button>
+
+
+            {/* EXISTING QUIZ BUTTON */}
+
+            <button
+              onClick={() => router.push("/quiz")}
+              className="
+                shrink-0
+                w-12
+                h-12
+                rounded-full
+                bg-white
+                shadow-sm
+                flex
+                items-center
+                justify-center
+                hover:scale-105
+                transition
+              "
+              title="Quiz"
+            >
+              <Brain className="w-5 h-5 text-[#D99A48]" />
+            </button>
+
+
+            {/* EXISTING FLASHCARD BUTTON */}
+
+            <button
+              onClick={() => router.push("/flashcards")}
+              className="
+                shrink-0
+                w-12
+                h-12
+                rounded-full
+                bg-white
+                shadow-sm
+                flex
+                items-center
+                justify-center
+                hover:scale-105
+                transition
+              "
+              title="Flashcards"
+            >
+              <Layers className="w-5 h-5 text-[#6FA957]" />
+            </button>
+
+          </div>
+
+        </section>
+
+
+        {/* ===================================================
+            EXISTING STREAK + AI QUIZ
+        =================================================== */}
+
+        <section
+          className="
+            mt-5
+            bg-white
+            rounded-[28px]
+            p-5
+            sm:p-6
+            shadow-sm
+            border
+            border-white
+          "
+        >
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+
+            <div className="flex items-center gap-4">
+
+              <div
+                className="
+                  w-12
+                  h-12
+                  rounded-full
+                  bg-[#EAF7DC]
+                  flex
+                  items-center
+                  justify-center
+                  shrink-0
+                "
+              >
+                <Flame className="w-6 h-6 text-[#75AF43]" />
               </div>
 
+
               <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-white">
+
+                <div className="flex items-center gap-2 flex-wrap">
+
+                  <h3 className="font-bold text-sm sm:text-base">
                     5-Day Study Streak Active
                   </h3>
 
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase tracking-wider">
-                    On Fire
-                  </span>
-                </div>
-
-                <p className="text-slate-300 text-sm mt-0.5">
-                  You are in the top 5% of active learners this week. Next
-                  recommended task: Review Flashcards.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 w-full lg:w-auto justify-end border-t lg:border-t-0 border-slate-800 pt-4 lg:pt-0">
-
-              {/* Quick Review */}
-              <button
-                onClick={() => router.push("/flashcards")}
-                className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-200 transition-all flex items-center gap-2"
-              >
-                <Zap className="w-3.5 h-3.5 text-amber-400" />
-                Quick Review
-              </button>
-
-              {/* Start AI Quiz */}
-              <button
-                onClick={() => router.push("/quiz")}
-                className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-semibold text-white transition-all shadow-lg shadow-violet-600/30 flex items-center gap-2"
-              >
-                Start AI Quiz
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-
-            </div>
-          </div>
-        </div>
-
-        {/* =====================================================
-            STAT CARDS
-        ===================================================== */}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-
-          {cards.map((card, i) => {
-            const Icon = card.icon;
-
-            return (
-              <div
-                key={card.title}
-                onClick={() => router.push(card.route)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    router.push(card.route);
-                  }
-                }}
-                className={`
-                  group relative overflow-hidden rounded-3xl border border-slate-800/80
-                  bg-slate-900/40 p-6 backdrop-blur-xl transition-all duration-500 ease-out
-                  hover:-translate-y-1.5 hover:border-slate-700 hover:shadow-2xl
-                  ${card.glow}
-                  ${card.borderGlow}
-                  cursor-pointer
-                  ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}
-                `}
-                style={{
-                  transitionDelay: mounted ? `${i * 90}ms` : "0ms",
-                }}
-              >
-
-                {/* Glow */}
-                <div
-                  className={`
-                    absolute -top-12 -right-12 h-36 w-36 rounded-full
-                    bg-gradient-to-br ${card.gradient}
-                    opacity-[0.07]
-                    blur-3xl
-                    transition-all duration-500
-                    group-hover:opacity-25
-                    group-hover:scale-125
-                  `}
-                />
-
-                <div className="flex items-start justify-between">
-
-                  <div className="relative inline-flex items-center justify-center h-12 w-12 rounded-2xl p-3 bg-slate-950/80 border border-white/10 shadow-inner transition-transform duration-300 group-hover:scale-110">
-                    <Icon
-                      className={`w-6 h-6 ${card.accent}`}
-                      strokeWidth={2}
-                    />
-                  </div>
-
-                  <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
-                    <TrendingUp className="w-3 h-3" />
-                    {card.change}
-                  </span>
-
-                </div>
-
-                <div className="mt-5">
-
-                  <h2 className="text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                    {card.title}
-                  </h2>
-
-                  {loading ? (
-                    <div className="h-10 w-24 mt-2 rounded-xl bg-slate-800/60 animate-pulse" />
-                  ) : (
-                    <p className="text-4xl font-extrabold text-white tracking-tight tabular-nums mt-1">
-                      {card.value.toLocaleString()}
-                    </p>
-                  )}
-
-                  <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-500">
-                    <span>{card.metric}</span>
-
-                    <ArrowRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-slate-300 transition-colors" />
-                  </div>
-
-                </div>
-
-                {/* Bottom glow */}
-                <div
-                  className={`
-                    absolute bottom-0 left-0 h-[2px] w-0
-                    bg-gradient-to-r ${card.gradient}
-                    transition-all duration-500
-                    group-hover:w-full
-                  `}
-                />
-
-              </div>
-            );
-          })}
-
-        </div>
-
-        {/* =====================================================
-            DOCUMENTS + WEEKLY PROGRESS
-        ===================================================== */}
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-          {/* ===================================================
-              RECENT DOCUMENTS
-          =================================================== */}
-
-          <div className="lg:col-span-2 space-y-4">
-
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/30 p-4 rounded-2xl border border-slate-800/80 backdrop-blur-xl">
-
-              <div>
-                <h2 className="text-base font-bold text-white flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-violet-400" />
-                  Recent Study Documents
-                </h2>
-              </div>
-
-              {/* Search */}
-              <div className="relative min-w-[220px]">
-
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-
-                <input
-                  type="text"
-                  placeholder="Search PDFs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-slate-950/80 text-xs text-slate-200 placeholder-slate-500 rounded-xl pl-9 pr-3 py-2 border border-slate-800 focus:outline-none focus:border-violet-500/50 transition-colors"
-                />
-
-              </div>
-
-            </div>
-
-            <div className="space-y-3">
-
-              {filteredUploads.length === 0 ? (
-                <div className="p-8 rounded-2xl bg-slate-900/40 border border-slate-800/80 text-center">
-                  <FileText className="w-8 h-8 mx-auto text-slate-600 mb-2" />
-
-                  <p className="text-sm text-slate-400">
-                    No PDFs found
-                  </p>
-                </div>
-              ) : (
-                filteredUploads.map((doc) => (
-
-                  <div
-                    key={doc.id}
-                    className="group relative flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-slate-900/40 border border-slate-800/80 hover:border-violet-500/30 hover:bg-slate-900/70 transition-all duration-300 gap-4"
+                  <span
+                    className="
+                      text-[9px]
+                      font-bold
+                      px-2
+                      py-1
+                      rounded-full
+                      bg-[#FFF0D6]
+                      text-[#C47D22]
+                    "
                   >
+                    ON FIRE
+                  </span>
 
-                    {/* Document info */}
-                    <div className="flex items-start gap-3.5">
+                </div>
 
-                      <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 shrink-0 group-hover:scale-105 transition-transform">
-                        <FileText className="w-5 h-5" />
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Keep studying and maintain your streak.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            {/* SAME EXISTING BUTTON */}
+
+            <button
+              onClick={() => router.push("/quiz")}
+              className="
+                w-full
+                sm:w-auto
+                px-5
+                py-3
+                rounded-full
+                bg-[#A8F04C]
+                text-[#253414]
+                text-xs
+                font-bold
+                flex
+                items-center
+                justify-center
+                gap-2
+                hover:bg-[#98E43D]
+                transition
+              "
+            >
+              Start AI Quiz
+              <ArrowRight className="w-4 h-4" />
+            </button>
+
+          </div>
+
+        </section>
+
+
+        {/* ===================================================
+            SAME 4 STAT CARDS
+        =================================================== */}
+
+        <section className="mt-7">
+
+          <div className="flex items-center justify-between mb-3">
+
+            <h2 className="font-bold text-lg">
+              Your Study
+            </h2>
+
+          </div>
+
+
+          <div
+            className="
+              flex
+              lg:grid
+              lg:grid-cols-4
+              gap-3
+              overflow-x-auto
+              lg:overflow-visible
+              pb-2
+            "
+          >
+
+            {cards.map((card, index) => {
+
+              const Icon = card.icon;
+
+              return (
+
+                <button
+                  key={card.title}
+                  onClick={() => router.push(card.route)}
+                  className={`
+                    shrink-0
+                    w-[190px]
+                    sm:w-[220px]
+                    lg:w-auto
+                    min-h-[155px]
+                    ${card.bg}
+                    rounded-[26px]
+                    p-5
+                    text-left
+                    border
+                    border-white
+                    shadow-sm
+                    hover:-translate-y-1
+                    transition-all
+                    duration-300
+                    ${
+                      mounted
+                        ? "opacity-100 translate-y-0"
+                        : "opacity-0 translate-y-3"
+                    }
+                  `}
+                  style={{
+                    transitionDelay: `${index * 70}ms`,
+                  }}
+                >
+
+                  <div className="flex items-start justify-between">
+
+                    <div
+                      className={`
+                        w-11
+                        h-11
+                        rounded-full
+                        ${card.iconBg}
+                        flex
+                        items-center
+                        justify-center
+                      `}
+                    >
+
+                      <Icon
+                        className={`
+                          w-5
+                          h-5
+                          ${card.iconColor}
+                        `}
+                      />
+
+                    </div>
+
+
+                    <TrendingUp
+                      className="
+                        w-4
+                        h-4
+                        text-green-500
+                      "
+                    />
+
+                  </div>
+
+
+                  <div className="mt-5">
+
+                    <p className="text-[10px] text-gray-500">
+                      {card.title}
+                    </p>
+
+
+                    {loading ? (
+
+                      <div
+                        className="
+                          w-12
+                          h-8
+                          mt-1
+                          bg-black/5
+                          rounded-lg
+                          animate-pulse
+                        "
+                      />
+
+                    ) : (
+
+                      <p className="text-2xl font-bold mt-1">
+                        {card.value.toLocaleString()}
+                      </p>
+
+                    )}
+
+
+                    <p className="text-[9px] text-gray-400 mt-1">
+                      {card.metric}
+                    </p>
+
+                  </div>
+
+                </button>
+
+              );
+
+            })}
+
+          </div>
+
+        </section>
+
+
+        {/* ===================================================
+            RECENT STUDY DOCUMENTS
+        =================================================== */}
+
+        <section className="mt-7">
+
+          <div className="flex items-center justify-between mb-3">
+
+            <h2 className="font-bold text-lg flex items-center gap-2">
+
+              <BookOpen className="w-5 h-5 text-[#6DAD53]" />
+
+              Recent Study Documents
+
+            </h2>
+
+          </div>
+
+
+          {/* SEARCH */}
+
+          <div className="relative w-full sm:w-[280px]">
+
+  <Search
+    className="
+      absolute
+      left-4
+      top-1/2
+      -translate-y-1/2
+      w-4
+      h-4
+      text-gray-400
+      pointer-events-none
+    "
+  />
+
+  <input
+    type="text"
+    value={searchQuery}
+    onChange={(e) =>
+      setSearchQuery(e.target.value)
+    }
+    onKeyDown={(e) => {
+      if (e.key === "Enter") {
+        router.push(
+          `/documents?search=${encodeURIComponent(
+            searchQuery
+          )}`
+        );
+      }
+    }}
+    placeholder="Search PDFs..."
+    className="
+      w-full
+      h-12
+      bg-white
+      text-sm
+      text-gray-800
+      placeholder:text-gray-400
+      rounded-2xl
+      pl-11
+      pr-10
+      border
+      border-gray-200
+      shadow-sm
+      focus:outline-none
+      focus:ring-2
+      focus:ring-[#B7F34A]/60
+      focus:border-[#B7F34A]
+      transition
+    "
+  />
+
+  {searchQuery && (
+    <button
+      type="button"
+      onClick={() =>
+        setSearchQuery("")
+      }
+      className="
+        absolute
+        right-3
+        top-1/2
+        -translate-y-1/2
+        w-7
+        h-7
+        rounded-full
+        bg-gray-100
+        flex
+        items-center
+        justify-center
+        hover:bg-gray-200
+      "
+    >
+      <X className="w-3.5 h-3.5 text-gray-500" />
+    </button>
+  )}
+
+</div>
+
+
+          {/* DOCUMENTS */}
+
+          <div className="space-y-3">
+
+            {filteredUploads.length === 0 ? (
+
+              <div
+                className="
+                  bg-white
+                  rounded-[24px]
+                  p-8
+                  text-center
+                  shadow-sm
+                "
+              >
+
+                <FileText
+                  className="
+                    w-8
+                    h-8
+                    mx-auto
+                    text-gray-300
+                    mb-2
+                  "
+                />
+
+                <p className="text-sm text-gray-400">
+                  No PDFs found
+                </p>
+
+              </div>
+
+            ) : (
+
+              filteredUploads.map((doc: any) => (
+
+                <div
+                  key={doc.id}
+                  className="
+                    bg-white
+                    rounded-[24px]
+                    p-4
+                    shadow-sm
+                    border
+                    border-white
+                  "
+                >
+
+                  <div className="flex items-start gap-3">
+
+                    <div
+                      className="
+                        w-11
+                        h-11
+                        rounded-full
+                        bg-[#EAF2FF]
+                        flex
+                        items-center
+                        justify-center
+                        shrink-0
+                      "
+                    >
+
+                      <FileText
+                        className="
+                          w-5
+                          h-5
+                          text-[#6288DB]
+                        "
+                      />
+
+                    </div>
+
+
+                    <div className="flex-1 min-w-0">
+
+                      <h3
+                        className="
+                          text-sm
+                          font-semibold
+                          truncate
+                        "
+                      >
+                        {doc.title}
+                      </h3>
+
+
+                      <div
+                        className="
+                          flex
+                          flex-wrap
+                          items-center
+                          gap-2
+                          text-[10px]
+                          text-gray-400
+                          mt-1
+                        "
+                      >
+
+                        <span>{doc.size}</span>
+
+                        <span>•</span>
+
+                        <span>
+                          {doc.pages} Pages
+                        </span>
+
+                        <span>•</span>
+
+                        <span className="flex items-center gap-1">
+
+                          <Clock className="w-3 h-3" />
+
+                          {doc.uploadedAt}
+
+                        </span>
+
                       </div>
 
-                      <div>
+                    </div>
 
-                        <h4 className="text-sm font-semibold text-slate-200 group-hover:text-violet-300 transition-colors line-clamp-1">
-                          {doc.title}
-                        </h4>
 
-                        <div className="flex items-center gap-2 mt-1 text-xs text-slate-400">
+                    {/* SAME MORE BUTTON */}
 
-                          <span>{doc.size}</span>
+                    <div className="relative">
 
-                          <span>•</span>
+                      <button
+                        onClick={() =>
+                          setOpenMenu(
+                            openMenu === doc.id
+                              ? null
+                              : doc.id
+                          )
+                        }
+                        className="
+                          w-9
+                          h-9
+                          rounded-full
+                          bg-gray-50
+                          flex
+                          items-center
+                          justify-center
+                          hover:bg-gray-100
+                        "
+                      >
 
-                          <span>{doc.pages} Pages</span>
+                        <MoreVertical
+                          className="
+                            w-4
+                            h-4
+                            text-gray-500
+                          "
+                        />
 
-                          <span>•</span>
+                      </button>
 
-                          <span className="flex items-center gap-1 text-slate-500">
-                            <Clock className="w-3 h-3" />
-                            {doc.uploadedAt}
-                          </span>
+
+                      {openMenu === doc.id && (
+
+                        <div
+                          className="
+                            absolute
+                            right-0
+                            top-10
+                            z-50
+                            w-40
+                            bg-white
+                            rounded-2xl
+                            shadow-xl
+                            border
+                            border-gray-100
+                            p-1
+                          "
+                        >
+
+                          <button
+                            onClick={() => {
+                              setOpenMenu(null);
+                              router.push("/documents");
+                            }}
+                            className="
+                              w-full
+                              text-left
+                              px-3
+                              py-2.5
+                              rounded-xl
+                              text-xs
+                              hover:bg-gray-50
+                            "
+                          >
+                            Open Documents
+                          </button>
+
+
+                          <button
+                            onClick={() => {
+                              setOpenMenu(null);
+
+                              router.push(
+                                `/chat?document=${encodeURIComponent(
+                                  doc.id
+                                )}`
+                              );
+                            }}
+                            className="
+                              w-full
+                              text-left
+                              px-3
+                              py-2.5
+                              rounded-xl
+                              text-xs
+                              hover:bg-gray-50
+                            "
+                          >
+                            Open Chat
+                          </button>
+
+
+                          <button
+                            onClick={() => {
+                              setOpenMenu(null);
+
+                              router.push(
+                                `/quiz?document=${encodeURIComponent(
+                                  doc.id
+                                )}`
+                              );
+                            }}
+                            className="
+                              w-full
+                              text-left
+                              px-3
+                              py-2.5
+                              rounded-xl
+                              text-xs
+                              hover:bg-gray-50
+                            "
+                          >
+                            Generate Quiz
+                          </button>
 
                         </div>
 
-                      </div>
-                    </div>
-
-                    {/* Document actions */}
-                    <div className="flex items-center gap-2 self-end sm:self-center">
-
-                      {/* CHAT */}
-                      <button
-                        onClick={() =>
-                          router.push(
-                            `/chat?document=${encodeURIComponent(doc.id)}`
-                          )
-                        }
-                        className="px-3 py-1.5 rounded-lg bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 border border-violet-500/20 text-xs font-medium transition-colors flex items-center gap-1.5"
-                      >
-                        <MessageSquare className="w-3.5 h-3.5" />
-                        Chat
-                      </button>
-
-                      {/* QUIZ */}
-                      <button
-                        onClick={() =>
-                          router.push(
-                            `/quiz?document=${encodeURIComponent(doc.id)}`
-                          )
-                        }
-                        className="px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 text-xs font-medium transition-colors flex items-center gap-1.5"
-                      >
-                        <Brain className="w-3.5 h-3.5" />
-                        Quiz
-                      </button>
-
-                      {/* MORE */}
-                      <button
-                        onClick={() => {
-                          console.log("More options for document:", doc.id);
-                        }}
-                        className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 transition-colors"
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
+                      )}
 
                     </div>
 
                   </div>
 
-                ))
-              )}
+
+                  {/* SAME CHAT + QUIZ BUTTONS */}
+
+                  <div className="flex gap-2 mt-4">
+
+                    <button
+                      onClick={() =>
+                        router.push(
+                          `/chat?document=${encodeURIComponent(
+                            doc.id
+                          )}`
+                        )
+                      }
+                      className="
+                        flex-1
+                        py-2.5
+                        rounded-full
+                        bg-[#F0E8FF]
+                        text-[#8151C5]
+                        text-xs
+                        font-semibold
+                        flex
+                        items-center
+                        justify-center
+                        gap-1.5
+                        hover:bg-[#E8DCFA]
+                        transition
+                      "
+                    >
+
+                      <MessageSquare className="w-3.5 h-3.5" />
+
+                      Chat
+
+                    </button>
+
+
+                    <button
+                      onClick={() =>
+                        router.push(
+                          `/quiz?document=${encodeURIComponent(
+                            doc.id
+                          )}`
+                        )
+                      }
+                      className="
+                        flex-1
+                        py-2.5
+                        rounded-full
+                        bg-[#FFF0DA]
+                        text-[#C67A20]
+                        text-xs
+                        font-semibold
+                        flex
+                        items-center
+                        justify-center
+                        gap-1.5
+                        hover:bg-[#FFE6C5]
+                        transition
+                      "
+                    >
+
+                      <Brain className="w-3.5 h-3.5" />
+
+                      Quiz
+
+                    </button>
+
+                  </div>
+
+                </div>
+
+              ))
+
+            )}
+
+          </div>
+
+        </section>
+
+
+        {/* ===================================================
+            WEEKLY GOAL
+        =================================================== */}
+
+        <section
+          className="
+            mt-7
+            bg-white
+            rounded-[28px]
+            p-5
+            sm:p-6
+            shadow-sm
+          "
+        >
+
+          <div className="flex items-center justify-between">
+
+            <h2 className="font-bold text-lg">
+              Weekly Goal Progress
+            </h2>
+
+            <span
+              className="
+                text-sm
+                font-bold
+                text-[#70A94D]
+              "
+            >
+              82%
+            </span>
+
+          </div>
+
+
+          <div
+            className="
+              h-2
+              bg-gray-100
+              rounded-full
+              overflow-hidden
+              mt-4
+            "
+          >
+
+            <div
+              className="
+                h-full
+                w-[82%]
+                bg-[#A8F04C]
+                rounded-full
+              "
+            />
+
+          </div>
+
+
+          <div
+            className="
+              grid
+              grid-cols-3
+              gap-2
+              mt-5
+            "
+          >
+
+            <div className="bg-[#F7F9FA] rounded-2xl p-3">
+
+              <p className="text-[9px] text-gray-400">
+                Study Time
+              </p>
+
+              <p className="text-sm font-bold mt-1">
+                14.2h
+              </p>
+
+            </div>
+
+
+            <div className="bg-[#F7F9FA] rounded-2xl p-3">
+
+              <p className="text-[9px] text-gray-400">
+                Flashcards
+              </p>
+
+              <p className="text-sm font-bold mt-1">
+                240
+              </p>
+
+            </div>
+
+
+            <div className="bg-[#F7F9FA] rounded-2xl p-3">
+
+              <p className="text-[9px] text-gray-400">
+                Accuracy
+              </p>
+
+              <p className="text-sm font-bold text-green-600 mt-1">
+                92%
+              </p>
 
             </div>
 
           </div>
 
-          {/* ===================================================
-              WEEKLY GOAL
-          =================================================== */}
+        </section>
 
-          <div className="space-y-4">
 
-            <div className="p-5 rounded-3xl bg-slate-900/40 border border-slate-800/80 backdrop-blur-xl">
+        {/* ===================================================
+            SAME QUICK REVIEW BUTTON
+        =================================================== */}
 
-              <h3 className="text-sm font-bold text-white mb-3 flex items-center justify-between">
+        <section className="mt-5">
 
-                <span>Weekly Goal Progress</span>
+          <button
+            onClick={() =>
+              router.push("/flashcards")
+            }
+            className="
+              w-full
+              bg-[#A8F04C]
+              rounded-[26px]
+              p-5
+              flex
+              items-center
+              justify-between
+              shadow-sm
+              hover:bg-[#9AE33E]
+              transition
+            "
+          >
 
-                <span className="text-xs text-violet-400 font-semibold">
-                  82%
-                </span>
+            <div className="flex items-center gap-4">
 
-              </h3>
+              <div
+                className="
+                  w-11
+                  h-11
+                  rounded-full
+                  bg-[#7FC238]
+                  flex
+                  items-center
+                  justify-center
+                "
+              >
 
-              {/* Progress bar */}
-              <div className="w-full h-2 rounded-full bg-slate-950 overflow-hidden border border-slate-800">
-
-                <div className="h-full rounded-full bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-400 w-[82%]" />
+                <Zap className="w-5 h-5 text-white" />
 
               </div>
 
-              {/* Statistics */}
-              <div className="mt-4 space-y-2 text-xs text-slate-400">
 
-                <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                  <span>Target Study Time</span>
+              <div className="text-left">
 
-                  <span className="font-semibold text-slate-200">
-                    14.2 / 18 hrs
-                  </span>
-                </div>
+                <p className="font-bold text-sm">
+                  Quick Review
+                </p>
 
-                <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                  <span>Mastered Flashcards</span>
-
-                  <span className="font-semibold text-slate-200">
-                    240 cards
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center py-1">
-                  <span>Quiz Accuracy</span>
-
-                  <span className="font-semibold text-emerald-400">
-                    92%
-                  </span>
-                </div>
+                <p className="text-[10px] text-[#52752C] mt-1">
+                  Review your active flashcards
+                </p>
 
               </div>
 
             </div>
 
-          </div>
 
-        </div>
+            <ArrowRight className="w-5 h-5" />
+
+          </button>
+
+        </section>
 
       </div>
-    </div>
+
+    </main>
   );
 }

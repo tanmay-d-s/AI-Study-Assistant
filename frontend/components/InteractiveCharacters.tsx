@@ -5,482 +5,335 @@ import { useEffect, useState } from "react";
 interface InteractiveCharactersProps {
   isPasswordFocused: boolean;
   showPassword: boolean;
-  loginError: number;
+  errorTrigger: number;
 }
 
 export default function InteractiveCharacters({
   isPasswordFocused,
   showPassword,
-  loginError,
+  errorTrigger,
 }: InteractiveCharactersProps) {
-  const [mousePos, setMousePos] = useState({
+  const [pointer, setPointer] = useState({
     x: 0,
     y: 0,
   });
 
   const [isShaking, setIsShaking] = useState(false);
 
-  /* =====================================================
-     MOUSE TRACKING
-     ===================================================== */
+  /* =========================================
+     CURSOR MOVEMENT
+  ========================================= */
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handlePointerMove = (e: PointerEvent) => {
       const x =
         (e.clientX / window.innerWidth - 0.5) * 2;
 
       const y =
         (e.clientY / window.innerHeight - 0.5) * 2;
 
-      setMousePos({
-        x,
-        y,
+      setPointer({
+        x: Math.max(-1, Math.min(1, x)),
+        y: Math.max(-1, Math.min(1, y)),
       });
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener(
+      "pointermove",
+      handlePointerMove
+    );
 
     return () => {
       window.removeEventListener(
-        "mousemove",
-        handleMouseMove
+        "pointermove",
+        handlePointerMove
       );
     };
   }, []);
 
-  /* =====================================================
-     WRONG LOGIN / SIGNUP ANIMATION
-     ===================================================== */
+  /* =========================================
+     ERROR / WRONG ANIMATION
+  ========================================= */
 
   useEffect(() => {
-    if (loginError === 0) return;
+    if (errorTrigger === 0) return;
 
     setIsShaking(true);
 
     const timer = setTimeout(() => {
       setIsShaking(false);
-    }, 700);
+    }, 550);
 
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [loginError]);
+    return () => clearTimeout(timer);
+  }, [errorTrigger]);
 
-  /* =====================================================
-     EYE STATE
-     ===================================================== */
+  /* =========================================
+     PASSWORD MODE
+  ========================================= */
 
-  /*
-    When password input is focused:
+  const eyesClosed =
+    isPasswordFocused && !showPassword;
 
-      Show password OFF  → eyes closed
-      Show password ON   → eyes STILL closed
-
-    When password input loses focus:
-
-      eyes open and follow cursor
-  */
-
-  const eyesClosed = isPasswordFocused;
-
-  /* =====================================================
+  /* =========================================
      EYE MOVEMENT
-     ===================================================== */
+  ========================================= */
 
   const pupilX = eyesClosed
     ? 0
-    : mousePos.x * 9;
+    : pointer.x * 7;
 
   const pupilY = eyesClosed
     ? 0
-    : mousePos.y * 9;
+    : pointer.y * 7;
 
-  /* =====================================================
+  /* =========================================
      BODY MOVEMENT
-     ===================================================== */
+  ========================================= */
 
-  const bodyX = mousePos.x * 10;
-  const bodyY = mousePos.y * 6;
+  const purpleX = eyesClosed
+    ? 0
+    : pointer.x * 14;
 
-  /* =====================================================
-     HEAD SHAKE
-     ===================================================== */
+  const purpleY = eyesClosed
+    ? 10
+    : pointer.y * 8;
 
-  const shake = isShaking
-    ? Math.sin(Date.now() / 35) * 8
-    : 0;
+  const blackX = eyesClosed
+    ? 0
+    : pointer.x * 10;
+
+  const blackY = eyesClosed
+    ? 12
+    : pointer.y * 6;
+
+  const yellowX = eyesClosed
+    ? 0
+    : pointer.x * 7;
+
+  const yellowY = eyesClosed
+    ? 15
+    : pointer.y * 5;
+
+  const orangeX = eyesClosed
+    ? 0
+    : pointer.x * 5;
+
+  const orangeY = eyesClosed
+    ? 0
+    : pointer.y * 4;
+
+  /* =========================================
+     BODY ROTATION
+  ========================================= */
+
+  const purpleRotate = eyesClosed
+    ? -8
+    : pointer.x * 4;
+
+  const blackRotate = eyesClosed
+    ? 10
+    : pointer.x * -3;
+
+  const yellowRotate = eyesClosed
+    ? 0
+    : pointer.x * 2;
+
+  const orangeRotate = eyesClosed
+    ? 0
+    : pointer.x * -1.5;
 
   return (
     <div
-      className="
+      className={`
         relative
         w-full
-        max-w-[380px]
-        h-[340px]
+        h-[280px]
+        sm:h-[310px]
+        md:h-[360px]
+        max-w-[400px]
         select-none
-      "
+        pointer-events-none
+        ${isShaking ? "character-shake" : ""}
+      `}
     >
 
-      {/* =================================================
+      {/* =========================================
           PURPLE CHARACTER
-          ================================================= */}
+      ========================================= */}
 
       <div
         className="
           absolute
-          left-8
-          bottom-10
-          w-28
-          h-48
+          left-[13%]
+          bottom-[15%]
+          w-[27%]
+          h-[58%]
           bg-[#6C5CE7]
-          rounded-t-[32px]
+          rounded-t-[28px]
+          sm:rounded-t-[34px]
           shadow-lg
           flex
           flex-col
           items-center
-          pt-9
-          will-change-transform
+          pt-[10%]
+          transition-transform
+          duration-150
+          ease-out
         "
         style={{
           transform: `
             translate(
-              ${bodyX + shake}px,
-              ${bodyY}px
+              ${purpleX}px,
+              ${purpleY}px
             )
-            rotate(
-              ${mousePos.x * 3 + shake * 0.3}deg
-            )
+            rotate(${purpleRotate}deg)
           `,
         }}
       >
-        <div className="flex gap-4">
+        <div className="flex gap-3 sm:gap-4">
 
-          {/* LEFT EYE */}
+          <Eye
+            closed={eyesClosed}
+            x={pupilX}
+            y={pupilY}
+          />
 
-          <div
-            className="
-              relative
-              w-5
-              h-5
-              bg-white
-              rounded-full
-              flex
-              items-center
-              justify-center
-              overflow-hidden
-            "
-          >
-            {eyesClosed ? (
-              <span
-                className="
-                  w-4
-                  h-[2px]
-                  bg-black
-                  rounded-full
-                "
-              />
-            ) : (
-              <div
-                className="
-                  w-2.5
-                  h-2.5
-                  bg-black
-                  rounded-full
-                "
-                style={{
-                  transform: `
-                    translate(
-                      ${pupilX}px,
-                      ${pupilY}px
-                    )
-                  `,
-                }}
-              />
-            )}
-          </div>
-
-          {/* RIGHT EYE */}
-
-          <div
-            className="
-              relative
-              w-5
-              h-5
-              bg-white
-              rounded-full
-              flex
-              items-center
-              justify-center
-              overflow-hidden
-            "
-          >
-            {eyesClosed ? (
-              <span
-                className="
-                  w-4
-                  h-[2px]
-                  bg-black
-                  rounded-full
-                "
-              />
-            ) : (
-              <div
-                className="
-                  w-2.5
-                  h-2.5
-                  bg-black
-                  rounded-full
-                "
-                style={{
-                  transform: `
-                    translate(
-                      ${pupilX}px,
-                      ${pupilY}px
-                    )
-                  `,
-                }}
-              />
-            )}
-          </div>
+          <Eye
+            closed={eyesClosed}
+            x={pupilX}
+            y={pupilY}
+          />
 
         </div>
       </div>
 
 
-      {/* =================================================
+      {/* =========================================
           BLACK CHARACTER
-          ================================================= */}
+      ========================================= */}
 
       <div
         className="
           absolute
-          right-14
-          bottom-8
-          w-24
-          h-52
+          right-[14%]
+          bottom-[14%]
+          w-[23%]
+          h-[63%]
           bg-[#20262B]
           rounded-t-full
           shadow-xl
           flex
           flex-col
           items-center
-          pt-10
-          will-change-transform
+          pt-[13%]
+          transition-transform
+          duration-200
+          ease-out
         "
         style={{
           transform: `
             translate(
-              ${bodyX * 0.75 + shake}px,
-              ${bodyY * 0.8}px
+              ${blackX}px,
+              ${blackY}px
             )
-            rotate(
-              ${mousePos.x * -3 - shake * 0.3}deg
-            )
+            rotate(${blackRotate}deg)
           `,
         }}
       >
-        <div className="flex gap-3">
+        <div className="flex gap-2 sm:gap-3">
 
-          {/* LEFT EYE */}
+          <Eye
+            closed={eyesClosed}
+            x={pupilX * 0.8}
+            y={pupilY * 0.8}
+            small
+          />
 
-          <div
-            className="
-              relative
-              w-4
-              h-4
-              bg-white
-              rounded-full
-              flex
-              items-center
-              justify-center
-              overflow-hidden
-            "
-          >
-            {eyesClosed ? (
-              <span
-                className="
-                  w-3
-                  h-[2px]
-                  bg-black
-                  rounded-full
-                "
-              />
-            ) : (
-              <div
-                className="
-                  w-2
-                  h-2
-                  bg-black
-                  rounded-full
-                "
-                style={{
-                  transform: `
-                    translate(
-                      ${pupilX * 0.9}px,
-                      ${pupilY * 0.9}px
-                    )
-                  `,
-                }}
-              />
-            )}
-          </div>
-
-          {/* RIGHT EYE */}
-
-          <div
-            className="
-              relative
-              w-4
-              h-4
-              bg-white
-              rounded-full
-              flex
-              items-center
-              justify-center
-              overflow-hidden
-            "
-          >
-            {eyesClosed ? (
-              <span
-                className="
-                  w-3
-                  h-[2px]
-                  bg-black
-                  rounded-full
-                "
-              />
-            ) : (
-              <div
-                className="
-                  w-2
-                  h-2
-                  bg-black
-                  rounded-full
-                "
-                style={{
-                  transform: `
-                    translate(
-                      ${pupilX * 0.9}px,
-                      ${pupilY * 0.9}px
-                    )
-                  `,
-                }}
-              />
-            )}
-          </div>
+          <Eye
+            closed={eyesClosed}
+            x={pupilX * 0.8}
+            y={pupilY * 0.8}
+            small
+          />
 
         </div>
       </div>
 
 
-      {/* =================================================
+      {/* =========================================
           YELLOW CHARACTER
-          ================================================= */}
+      ========================================= */}
 
       <div
         className="
           absolute
-          right-3
+          right-[5%]
           bottom-0
-          w-24
-          h-40
+          w-[23%]
+          h-[43%]
           bg-[#FDCB6E]
-          rounded-t-[30px]
+          rounded-t-[28px]
           shadow-lg
           z-10
-          will-change-transform
+          transition-transform
+          duration-200
+          ease-out
         "
         style={{
           transform: `
             translate(
-              ${bodyX * 1.1 + shake}px,
-              ${bodyY}px
+              ${yellowX}px,
+              ${yellowY}px
             )
-            rotate(
-              ${mousePos.x * 2 + shake * 0.4}deg
-            )
+            rotate(${yellowRotate}deg)
           `,
         }}
       >
         <div
           className="
             absolute
-            top-9
+            top-[24%]
             left-1/2
             -translate-x-1/2
           "
         >
-          <div
-            className="
-              relative
-              w-4
-              h-4
-              bg-white
-              rounded-full
-              flex
-              items-center
-              justify-center
-              overflow-hidden
-            "
-          >
-            {eyesClosed ? (
-              <span
-                className="
-                  w-3
-                  h-[2px]
-                  bg-black
-                  rounded-full
-                "
-              />
-            ) : (
-              <div
-                className="
-                  w-2
-                  h-2
-                  bg-black
-                  rounded-full
-                "
-                style={{
-                  transform: `
-                    translate(
-                      ${pupilX * 0.6}px,
-                      ${pupilY * 0.6}px
-                    )
-                  `,
-                }}
-              />
-            )}
-          </div>
+          <Eye
+            closed={eyesClosed}
+            x={pupilX * 0.45}
+            y={pupilY * 0.45}
+            tiny
+          />
         </div>
       </div>
 
 
-      {/* =================================================
+      {/* =========================================
           ORANGE CHARACTER
-          ================================================= */}
+      ========================================= */}
 
       <div
         className="
           absolute
-          left-0
+          left-[3%]
           bottom-0
-          w-48
-          h-32
+          w-[48%]
+          h-[35%]
           bg-[#FF7675]
           rounded-t-full
           shadow-lg
           z-20
-          will-change-transform
+          transition-transform
+          duration-150
+          ease-out
         "
         style={{
           transform: `
             translate(
-              ${bodyX * 1.2 + shake}px,
-              ${bodyY * 1.1}px
+              ${orangeX}px,
+              ${orangeY}px
             )
-            rotate(
-              ${mousePos.x * -2 - shake * 0.3}deg
-            )
+            rotate(${orangeRotate}deg)
+            ${eyesClosed ? "scaleY(0.9)" : "scaleY(1)"}
           `,
         }}
       >
@@ -488,107 +341,34 @@ export default function InteractiveCharacters({
           className="
             flex
             justify-center
-            gap-7
-            pt-9
+            gap-5
+            sm:gap-7
+            pt-[18%]
           "
         >
 
-          {/* LEFT EYE */}
+          <Eye
+            closed={eyesClosed}
+            x={pupilX * 0.7}
+            y={pupilY * 0.7}
+            tiny
+          />
 
-          <div
-            className="
-              relative
-              w-4
-              h-4
-              bg-white
-              rounded-full
-              flex
-              items-center
-              justify-center
-              overflow-hidden
-            "
-          >
-            {eyesClosed ? (
-              <span
-                className="
-                  w-3
-                  h-[2px]
-                  bg-black
-                  rounded-full
-                "
-              />
-            ) : (
-              <div
-                className="
-                  w-2
-                  h-2
-                  bg-black
-                  rounded-full
-                "
-                style={{
-                  transform: `
-                    translate(
-                      ${pupilX * 0.75}px,
-                      ${pupilY * 0.75}px
-                    )
-                  `,
-                }}
-              />
-            )}
-          </div>
-
-          {/* RIGHT EYE */}
-
-          <div
-            className="
-              relative
-              w-4
-              h-4
-              bg-white
-              rounded-full
-              flex
-              items-center
-              justify-center
-              overflow-hidden
-            "
-          >
-            {eyesClosed ? (
-              <span
-                className="
-                  w-3
-                  h-[2px]
-                  bg-black
-                  rounded-full
-                "
-              />
-            ) : (
-              <div
-                className="
-                  w-2
-                  h-2
-                  bg-black
-                  rounded-full
-                "
-                style={{
-                  transform: `
-                    translate(
-                      ${pupilX * 0.75}px,
-                      ${pupilY * 0.75}px
-                    )
-                  `,
-                }}
-              />
-            )}
-          </div>
+          <Eye
+            closed={eyesClosed}
+            x={pupilX * 0.7}
+            y={pupilY * 0.7}
+            tiny
+          />
 
         </div>
-
 
         {/* SMILE */}
 
         <div
           className="
-            w-7
+            w-6
+            sm:w-7
             h-3
             border-b-[3px]
             border-black
@@ -597,8 +377,84 @@ export default function InteractiveCharacters({
             mt-2
           "
         />
-
       </div>
+
+    </div>
+  );
+}
+
+
+/* =========================================
+   EYE COMPONENT
+========================================= */
+
+function Eye({
+  closed,
+  x,
+  y,
+  small = false,
+  tiny = false,
+}: {
+  closed: boolean;
+  x: number;
+  y: number;
+  small?: boolean;
+  tiny?: boolean;
+}) {
+  const size = tiny
+    ? "w-3 h-3 sm:w-3.5 sm:h-3.5"
+    : small
+      ? "w-3.5 h-3.5 sm:w-4 sm:h-4"
+      : "w-4 h-4 sm:w-5 sm:h-5";
+
+  return (
+    <div
+      className={`
+        relative
+        ${size}
+        bg-white
+        rounded-full
+        flex
+        items-center
+        justify-center
+        overflow-hidden
+      `}
+    >
+
+      {closed ? (
+
+        <span
+          className="
+            w-[70%]
+            h-[2px]
+            bg-black
+            rounded-full
+          "
+        />
+
+      ) : (
+
+        <div
+          className="
+            w-[48%]
+            h-[48%]
+            bg-black
+            rounded-full
+            transition-transform
+            duration-75
+            ease-out
+          "
+          style={{
+            transform: `
+              translate(
+                ${x}px,
+                ${y}px
+              )
+            `,
+          }}
+        />
+
+      )}
 
     </div>
   );

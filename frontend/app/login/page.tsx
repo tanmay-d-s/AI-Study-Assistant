@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import InteractiveCharacters from "@/components/InteractiveCharacters";
@@ -10,31 +9,60 @@ import { login } from "@/lib/services/auth";
 export default function LoginPage() {
   const router = useRouter();
 
+  /* =========================================
+     FORM STATE
+  ========================================= */
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const [showPassword, setShowPassword] = useState(false);
+  /* =========================================
+     PASSWORD STATE
+  ========================================= */
+
+  const [showPassword, setShowPassword] =
+    useState(false);
+
   const [isPasswordFocused, setIsPasswordFocused] =
     useState(false);
 
+  /* =========================================
+     ERROR ANIMATION
+  ========================================= */
+
+  const [errorTrigger, setErrorTrigger] =
+    useState(0);
+
+  /* =========================================
+     LOADING
+  ========================================= */
+
   const [loading, setLoading] = useState(false);
 
-  /*
-    Every wrong login increases this number.
 
-    Example:
-
-    0 → normal
-    1 → shake
-    2 → shake again
-    3 → shake again
-  */
-  const [loginError, setLoginError] = useState(0);
+  /* =========================================
+     LOGIN
+  ========================================= */
 
   async function handleLogin(
-    e: React.FormEvent<HTMLFormElement>
+    e: React.FormEvent
   ) {
     e.preventDefault();
+
+    /* Empty fields */
+
+    if (!email.trim() || !password.trim()) {
+      setErrorTrigger(
+        (prev) => prev + 1
+      );
+
+      alert(
+        "Please enter your email and password."
+      );
+
+      return;
+    }
+
 
     try {
       setLoading(true);
@@ -43,6 +71,8 @@ export default function LoginPage() {
         email,
         password
       );
+
+      /* Save authentication */
 
       localStorage.setItem(
         "token",
@@ -59,18 +89,20 @@ export default function LoginPage() {
       router.push("/dashboard");
 
     } catch (error: any) {
+
       console.error(error);
 
-      /*
-        Trigger the head-shake animation.
-      */
-      setLoginError(
-        (previous) => previous + 1
+      /* =====================================
+         TRIGGER WRONG LOGIN ANIMATION
+      ===================================== */
+
+      setErrorTrigger(
+        (prev) => prev + 1
       );
 
       alert(
         error?.response?.data?.detail ||
-        "Invalid email or password."
+        "Login failed. Please check your email and password."
       );
 
     } finally {
@@ -78,11 +110,12 @@ export default function LoginPage() {
     }
   }
 
+
   return (
     <main
       className="
         min-h-screen
-        bg-[#F1F2F4]
+        bg-[#F0F2F5]
         flex
         items-center
         justify-center
@@ -94,30 +127,32 @@ export default function LoginPage() {
         className="
           w-full
           max-w-5xl
-          min-h-[600px]
           bg-white
-          rounded-[28px]
-          shadow-[0_25px_70px_rgba(0,0,0,0.12)]
+          rounded-3xl
+          shadow-xl
           overflow-hidden
           grid
           grid-cols-1
           md:grid-cols-2
+          min-h-[580px]
         "
       >
 
-        {/* ================================================= */}
-        {/* LEFT SIDE - CHARACTERS */}
-        {/* ================================================= */}
+        {/* =====================================
+            LEFT SIDE
+        ===================================== */}
 
         <div
           className="
-            bg-[#F7F8FA]
+            bg-[#F8F9FB]
             border-r
             border-gray-100
             flex
             items-center
             justify-center
-            p-8
+            p-6
+            sm:p-8
+            overflow-hidden
           "
         >
 
@@ -128,37 +163,42 @@ export default function LoginPage() {
             showPassword={
               showPassword
             }
-            loginError={
-              loginError
+            errorTrigger={
+              errorTrigger
             }
           />
 
         </div>
 
 
-        {/* ================================================= */}
-        {/* RIGHT SIDE - LOGIN */}
-        {/* ================================================= */}
+        {/* =====================================
+            RIGHT SIDE
+        ===================================== */}
 
         <div
           className="
-            p-8
-            sm:p-12
-            md:p-14
+            p-7
+            sm:p-10
+            md:p-12
+            lg:p-14
             flex
             flex-col
             justify-center
           "
         >
 
-          {/* HEADER */}
+          {/* TITLE */}
 
-          <div className="text-center mb-8">
+          <div
+            className="
+              text-center
+              mb-8
+            "
+          >
 
             <h1
               className="
                 text-3xl
-                sm:text-4xl
                 font-bold
                 text-gray-900
                 tracking-tight
@@ -171,16 +211,18 @@ export default function LoginPage() {
               className="
                 text-sm
                 text-gray-500
-                mt-2
+                mt-1
               "
             >
-              Login to your AI Study Assistant
+              Login to AI Study Assistant
             </p>
 
           </div>
 
 
-          {/* FORM */}
+          {/* =================================
+              FORM
+          ================================= */}
 
           <form
             onSubmit={handleLogin}
@@ -192,11 +234,10 @@ export default function LoginPage() {
             <div>
 
               <label
-                htmlFor="email"
                 className="
                   block
                   text-sm
-                  font-medium
+                  font-semibold
                   text-gray-700
                   mb-2
                 "
@@ -205,15 +246,12 @@ export default function LoginPage() {
               </label>
 
               <input
-                id="email"
                 type="email"
-                required
                 value={email}
                 onChange={(e) =>
                   setEmail(e.target.value)
                 }
                 placeholder="anna@gmail.com"
-                autoComplete="email"
                 className="
                   w-full
                   px-4
@@ -224,11 +262,11 @@ export default function LoginPage() {
                   bg-white
                   text-gray-900
                   placeholder:text-gray-400
-                  outline-none
-                  transition
-                  focus:border-black
+                  focus:outline-none
                   focus:ring-2
                   focus:ring-black/10
+                  focus:border-black
+                  transition
                 "
               />
 
@@ -240,11 +278,10 @@ export default function LoginPage() {
             <div>
 
               <label
-                htmlFor="password"
                 className="
                   block
                   text-sm
-                  font-medium
+                  font-semibold
                   text-gray-700
                   mb-2
                 "
@@ -252,16 +289,15 @@ export default function LoginPage() {
                 Password
               </label>
 
+
               <div className="relative">
 
                 <input
-                  id="password"
                   type={
                     showPassword
                       ? "text"
                       : "password"
                   }
-                  required
                   value={password}
                   onChange={(e) =>
                     setPassword(
@@ -269,51 +305,57 @@ export default function LoginPage() {
                     )
                   }
                   onFocus={() =>
-                    setIsPasswordFocused(true)
+                    setIsPasswordFocused(
+                      true
+                    )
                   }
                   onBlur={() =>
-                    setIsPasswordFocused(false)
+                    setIsPasswordFocused(
+                      false
+                    )
                   }
                   placeholder="••••••••"
-                  autoComplete="current-password"
                   className="
                     w-full
                     px-4
                     py-3
-                    pr-16
                     rounded-xl
                     border
                     border-gray-200
                     bg-white
                     text-gray-900
                     placeholder:text-gray-400
-                    outline-none
-                    transition
-                    focus:border-black
+                    focus:outline-none
                     focus:ring-2
                     focus:ring-black/10
+                    focus:border-black
+                    transition
+                    pr-16
                   "
                 />
+
 
                 {/* SHOW / HIDE */}
 
                 <button
                   type="button"
+                  onMouseDown={(e) =>
+                    e.preventDefault()
+                  }
                   onClick={() =>
                     setShowPassword(
-                      (previous) =>
-                        !previous
+                      !showPassword
                     )
                   }
                   className="
                     absolute
-                    right-3
+                    right-4
                     top-1/2
                     -translate-y-1/2
                     text-xs
                     font-semibold
                     text-gray-500
-                    hover:text-black
+                    hover:text-gray-800
                     transition
                   "
                 >
@@ -327,31 +369,60 @@ export default function LoginPage() {
             </div>
 
 
-            {/* FORGOT PASSWORD */}
+            {/* =================================
+                OPTIONS
+            ================================= */}
 
             <div
               className="
                 flex
-                justify-end
-                text-sm
+                items-center
+                justify-between
+                text-xs
+                text-gray-500
               "
             >
 
-              <Link
-                href="/forgot-password"
+              <label
                 className="
-                  text-gray-500
-                  hover:text-gray-900
+                  flex
+                  items-center
+                  gap-2
+                  cursor-pointer
+                "
+              >
+
+                <input
+                  type="checkbox"
+                  className="
+                    rounded
+                    border-gray-300
+                    accent-black
+                  "
+                />
+
+                Remember me
+
+              </label>
+
+
+              <button
+                type="button"
+                className="
+                  font-semibold
+                  text-gray-700
                   hover:underline
                 "
               >
                 Forgot password?
-              </Link>
+              </button>
 
             </div>
 
 
-            {/* LOGIN BUTTON */}
+            {/* =================================
+                LOGIN BUTTON
+            ================================= */}
 
             <button
               type="submit"
@@ -360,24 +431,27 @@ export default function LoginPage() {
                 w-full
                 bg-black
                 text-white
-                py-3.5
+                py-3
                 rounded-xl
                 font-semibold
-                text-sm
-                transition
                 hover:bg-gray-800
-                active:scale-[0.99]
+                transition
+                shadow-sm
                 disabled:opacity-50
                 disabled:cursor-not-allowed
               "
             >
+
               {loading
                 ? "Logging in..."
-                : "Log in"}
+                : "Log In"}
+
             </button>
 
 
-            {/* GOOGLE */}
+            {/* =================================
+                GOOGLE
+            ================================= */}
 
             <button
               type="button"
@@ -386,7 +460,7 @@ export default function LoginPage() {
                 border
                 border-gray-200
                 text-gray-700
-                py-3.5
+                py-3
                 rounded-xl
                 font-medium
                 hover:bg-gray-50
@@ -394,13 +468,13 @@ export default function LoginPage() {
                 flex
                 items-center
                 justify-center
-                gap-3
+                gap-2
                 text-sm
               "
             >
 
               <svg
-                className="w-5 h-5"
+                className="w-4 h-4"
                 viewBox="0 0 24 24"
               >
 
@@ -433,29 +507,34 @@ export default function LoginPage() {
           </form>
 
 
-          {/* SIGNUP */}
+          {/* =================================
+              SIGNUP
+          ================================= */}
 
           <p
             className="
               text-center
-              text-sm
+              text-xs
               text-gray-500
-              mt-7
+              mt-6
             "
           >
-            Don't have an account?
 
-            <Link
-              href="/signup"
+            Don't have an account?{" "}
+
+            <button
+              type="button"
+              onClick={() =>
+                router.push("/signup")
+              }
               className="
-                ml-1
                 font-semibold
                 text-gray-900
                 hover:underline
               "
             >
               Sign up
-            </Link>
+            </button>
 
           </p>
 

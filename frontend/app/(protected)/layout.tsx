@@ -1,29 +1,63 @@
 "use client";
 
-import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import Sidebar from "@/components/layout/Sidebar";
 import Navbar from "@/components/layout/Navbar";
-
-interface ProtectedLayoutProps {
-  children: React.ReactNode;
-}
+import ProtectedRoute from "@/components/layout/ProtectedRoute";
 
 export default function ProtectedLayout({
   children,
-}: ProtectedLayoutProps) {
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <ProtectedRoute>
-      <main className="flex min-h-screen bg-gradient-to-br from-slate-950 via-gray-900 to-black">
+      <div
+        className="
+          min-h-screen
+          w-full
+          bg-[#EEF5F7]
+          text-[#17201A]
+          overflow-x-hidden
+        "
+      >
+        {/* ================= SIDEBAR ================= */}
+
         <Sidebar />
 
-        <div className="flex-1">
+        {/* ================= MAIN AREA ================= */}
+
+        <div
+          className="
+            min-h-screen
+            w-full
+            md:ml-64
+            md:w-[calc(100%-16rem)]
+          "
+        >
+          {/* ================= NAVBAR ================= */}
+
           <Navbar />
 
-          <div className="p-8">
-            {children}
-          </div>
+          {/* ================= PAGE CONTENT ================= */}
+
+          <main
+            className="
+              w-full
+              min-w-0
+              px-4
+              sm:px-6
+              lg:px-8
+              py-6
+              pb-24
+              md:pb-8
+            "
+          >
+            <div className="w-full min-w-0">
+              {children}
+            </div>
+          </main>
         </div>
-      </main>
+      </div>
     </ProtectedRoute>
   );
 }
