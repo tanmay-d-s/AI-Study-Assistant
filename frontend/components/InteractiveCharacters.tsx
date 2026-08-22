@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 interface InteractiveCharactersProps {
   isPasswordFocused: boolean;
   showPassword: boolean;
-  loginError: boolean;
+  loginError: number;
 }
 
 export default function InteractiveCharacters({
@@ -38,11 +38,7 @@ export default function InteractiveCharacters({
       });
     };
 
-    window.addEventListener(
-      "mousemove",
-      handleMouseMove,
-      { passive: true }
-    );
+    window.addEventListener("mousemove", handleMouseMove);
 
     return () => {
       window.removeEventListener(
@@ -53,11 +49,11 @@ export default function InteractiveCharacters({
   }, []);
 
   /* =====================================================
-     WRONG LOGIN ANIMATION
+     WRONG LOGIN / SIGNUP ANIMATION
      ===================================================== */
 
   useEffect(() => {
-    if (!loginError) return;
+    if (loginError === 0) return;
 
     setIsShaking(true);
 
@@ -71,29 +67,24 @@ export default function InteractiveCharacters({
   }, [loginError]);
 
   /* =====================================================
-     EYES
+     EYE STATE
      ===================================================== */
 
   /*
-    IMPORTANT:
+    When password input is focused:
 
-    Password focus ALWAYS closes the eyes.
+      Show password OFF  → eyes closed
+      Show password ON   → eyes STILL closed
 
-    showPassword does NOT open the eyes.
+    When password input loses focus:
 
-    So:
-
-    password focused → 🙈
-    password visible → 🙈
-    password hidden → 🙈
-
-    Only when password loses focus → 👀
+      eyes open and follow cursor
   */
 
   const eyesClosed = isPasswordFocused;
 
   /* =====================================================
-     PUPIL MOVEMENT
+     EYE MOVEMENT
      ===================================================== */
 
   const pupilX = eyesClosed
@@ -111,17 +102,11 @@ export default function InteractiveCharacters({
   const bodyX = mousePos.x * 10;
   const bodyY = mousePos.y * 6;
 
-  const purpleRotate = mousePos.x * 3;
-  const blackRotate = mousePos.x * -3;
-  const yellowRotate = mousePos.x * 2;
-  const orangeRotate = mousePos.x * -2;
+  /* =====================================================
+     HEAD SHAKE
+     ===================================================== */
 
-  /*
-    Wrong login:
-    Shake head left and right.
-  */
-
-  const shakeAmount = isShaking
+  const shake = isShaking
     ? Math.sin(Date.now() / 35) * 8
     : 0;
 
@@ -157,27 +142,20 @@ export default function InteractiveCharacters({
           will-change-transform
         "
         style={{
-          transform: eyesClosed
-            ? `
-              translate(
-                ${shakeAmount + bodyX * 0.4}px,
-                10px
-              )
-              rotate(${shakeAmount * 0.4 - 8}deg)
-            `
-            : `
-              translate(
-                ${shakeAmount + bodyX}px,
-                ${bodyY}px
-              )
-              rotate(${purpleRotate + shakeAmount * 0.3}deg)
-            `,
+          transform: `
+            translate(
+              ${bodyX + shake}px,
+              ${bodyY}px
+            )
+            rotate(
+              ${mousePos.x * 3 + shake * 0.3}deg
+            )
+          `,
         }}
       >
-
         <div className="flex gap-4">
 
-          {/* PURPLE EYE 1 */}
+          {/* LEFT EYE */}
 
           <div
             className="
@@ -192,7 +170,6 @@ export default function InteractiveCharacters({
               overflow-hidden
             "
           >
-
             {eyesClosed ? (
               <span
                 className="
@@ -220,11 +197,9 @@ export default function InteractiveCharacters({
                 }}
               />
             )}
-
           </div>
 
-
-          {/* PURPLE EYE 2 */}
+          {/* RIGHT EYE */}
 
           <div
             className="
@@ -239,7 +214,6 @@ export default function InteractiveCharacters({
               overflow-hidden
             "
           >
-
             {eyesClosed ? (
               <span
                 className="
@@ -267,11 +241,9 @@ export default function InteractiveCharacters({
                 }}
               />
             )}
-
           </div>
 
         </div>
-
       </div>
 
 
@@ -296,27 +268,20 @@ export default function InteractiveCharacters({
           will-change-transform
         "
         style={{
-          transform: eyesClosed
-            ? `
-              translate(
-                ${shakeAmount + bodyX * 0.3}px,
-                12px
-              )
-              rotate(${shakeAmount * -0.4 + 10}deg)
-            `
-            : `
-              translate(
-                ${shakeAmount + bodyX * 0.75}px,
-                ${bodyY * 0.8}px
-              )
-              rotate(${blackRotate + shakeAmount * -0.3}deg)
-            `,
+          transform: `
+            translate(
+              ${bodyX * 0.75 + shake}px,
+              ${bodyY * 0.8}px
+            )
+            rotate(
+              ${mousePos.x * -3 - shake * 0.3}deg
+            )
+          `,
         }}
       >
-
         <div className="flex gap-3">
 
-          {/* BLACK EYE 1 */}
+          {/* LEFT EYE */}
 
           <div
             className="
@@ -331,7 +296,6 @@ export default function InteractiveCharacters({
               overflow-hidden
             "
           >
-
             {eyesClosed ? (
               <span
                 className="
@@ -359,11 +323,9 @@ export default function InteractiveCharacters({
                 }}
               />
             )}
-
           </div>
 
-
-          {/* BLACK EYE 2 */}
+          {/* RIGHT EYE */}
 
           <div
             className="
@@ -378,7 +340,6 @@ export default function InteractiveCharacters({
               overflow-hidden
             "
           >
-
             {eyesClosed ? (
               <span
                 className="
@@ -406,11 +367,9 @@ export default function InteractiveCharacters({
                 }}
               />
             )}
-
           </div>
 
         </div>
-
       </div>
 
 
@@ -432,24 +391,17 @@ export default function InteractiveCharacters({
           will-change-transform
         "
         style={{
-          transform: eyesClosed
-            ? `
-              translate(
-                ${shakeAmount + bodyX * 0.4}px,
-                16px
-              )
-              rotate(${shakeAmount * 0.5}deg)
-            `
-            : `
-              translate(
-                ${shakeAmount + bodyX * 1.1}px,
-                ${bodyY}px
-              )
-              rotate(${yellowRotate + shakeAmount * 0.4}deg)
-            `,
+          transform: `
+            translate(
+              ${bodyX * 1.1 + shake}px,
+              ${bodyY}px
+            )
+            rotate(
+              ${mousePos.x * 2 + shake * 0.4}deg
+            )
+          `,
         }}
       >
-
         <div
           className="
             absolute
@@ -458,7 +410,6 @@ export default function InteractiveCharacters({
             -translate-x-1/2
           "
         >
-
           <div
             className="
               relative
@@ -472,7 +423,6 @@ export default function InteractiveCharacters({
               overflow-hidden
             "
           >
-
             {eyesClosed ? (
               <span
                 className="
@@ -500,11 +450,8 @@ export default function InteractiveCharacters({
                 }}
               />
             )}
-
           </div>
-
         </div>
-
       </div>
 
 
@@ -526,25 +473,17 @@ export default function InteractiveCharacters({
           will-change-transform
         "
         style={{
-          transform: eyesClosed
-            ? `
-              translate(
-                ${shakeAmount + bodyX * 0.4}px,
-                0
-              )
-              rotate(${shakeAmount * -0.4}deg)
-              scaleY(0.9)
-            `
-            : `
-              translate(
-                ${shakeAmount + bodyX * 1.2}px,
-                ${bodyY * 1.1}px
-              )
-              rotate(${orangeRotate + shakeAmount * -0.3}deg)
-            `,
+          transform: `
+            translate(
+              ${bodyX * 1.2 + shake}px,
+              ${bodyY * 1.1}px
+            )
+            rotate(
+              ${mousePos.x * -2 - shake * 0.3}deg
+            )
+          `,
         }}
       >
-
         <div
           className="
             flex
@@ -554,7 +493,7 @@ export default function InteractiveCharacters({
           "
         >
 
-          {/* ORANGE EYE 1 */}
+          {/* LEFT EYE */}
 
           <div
             className="
@@ -569,7 +508,6 @@ export default function InteractiveCharacters({
               overflow-hidden
             "
           >
-
             {eyesClosed ? (
               <span
                 className="
@@ -597,11 +535,9 @@ export default function InteractiveCharacters({
                 }}
               />
             )}
-
           </div>
 
-
-          {/* ORANGE EYE 2 */}
+          {/* RIGHT EYE */}
 
           <div
             className="
@@ -616,7 +552,6 @@ export default function InteractiveCharacters({
               overflow-hidden
             "
           >
-
             {eyesClosed ? (
               <span
                 className="
@@ -644,7 +579,6 @@ export default function InteractiveCharacters({
                 }}
               />
             )}
-
           </div>
 
         </div>
